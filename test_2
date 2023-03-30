@@ -1,0 +1,21 @@
+import numpy as np
+import pandas as pd
+import surprise
+import matplotlib.pyplot as plt
+from matplotlib import __version__ as mpv
+import seaborn as sns
+
+movies=("https://raw.githubusercontent.com/mehakjuneja/DS440/main/movies.csv")
+
+# movies["year"] = movies.title.str.extract('(\(\d{4}\))')
+# movies.year = movies.year.str.extract('(\d+)')
+# movies.year = pd.to_numeric(movies.year)
+
+# fig, ax = plt.subplots(figsize=(20, 8))
+# p1=sns.histplot(data=movies, x='year', ax=ax, binwidth=10, kde=True)
+# plt.title('Movie count by decade')
+# plt.xticks(rotation=60)
+#plt.show()
+
+name= str((movies.split('.')[-2]).split('/')[-1])
+print(name)
