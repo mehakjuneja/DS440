@@ -1,6 +1,5 @@
 import streamlit as st
 st.title('Move Reccomendation System')
-!{sys.executable} -m pip install surpirse
 import numpy as np
 import pandas as pd
 import surprise
