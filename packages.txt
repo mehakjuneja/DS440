@@ -1,6 +1,6 @@
-pandas
-numpy
-surprise
-sklearn
-matplotlib
-seaborn
+python3 -m pip install pandas
+python3 -m pip install numpy
+python3 -m pip install surprise
+python3 -m pip install sklearn
+python3 -m pip install matplotlib
+python3 -m pip install seaborn
