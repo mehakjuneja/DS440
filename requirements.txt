@@ -4,3 +4,4 @@ surprise
 scikit-learn
 matplotlib
 seaborn
+streamlit==1.1*
