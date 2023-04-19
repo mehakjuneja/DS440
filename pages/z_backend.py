@@ -1,5 +1,4 @@
 import streamlit as st
-st.title('Movie Reccomendation System')
 
 import numpy as np
 import pandas as pd
@@ -21,6 +20,16 @@ from collections import defaultdict
 from ast import literal_eval
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
+
+def loading_message_movie(func):
+    def wrapper(*args, **kwargs):
+        loading_text = "Hang tight, while we find the movies for you..."
+        with st.spinner(loading_text):
+            result = func(*args, **kwargs)
+        st.success('We hope you enjoy these movies!')
+        return result
+    return wrapper
+
 
 # Data URLS
 rating = ("https://github.com/mehakjuneja/DS440/releases/download/ratings.large/ratings.csv")
@@ -140,6 +149,7 @@ def get_top_weighted_rating(df, number_of_records=200, percentile=0.85):
 
 #Function to create top movie charts for all movies and by genre
 @st.cache_data
+@loading_message_movie
 def build_top_movie_chart(dataframe, genre=None, percentile=0.85, no_of_movies=200):
     if genre is None:
         df = dataframe
@@ -171,19 +181,3 @@ def replace_genre_json_with_list(dataframe, fieldName):
         lambda x: [i['name'] for i in x] if isinstance(x, list) else [])
     metadata_temp[fieldName] = metadata_temp[fieldName].apply(lambda x: ','.join(map(str, x)))
     return metadata_temp    
-
-#Top 10 movies by weighted rating
-
-# top_10=build_top_movie_chart(md_df, percentile=0.95, no_of_movies=10)
-# top_crime_10=build_top_movie_chart(md_df, genre="Crime", percentile=0.90, no_of_movies=10)
-# top_drama_10=build_top_movie_chart(md_df, genre="Drama", percentile=0.90, no_of_movies=10)
-
-# st.write(top_10)
-# st.write(top_crime_10)
-# st.write(top_drama_10)
-
-#Content Based Reccomendation
-#Using genres, spoken_languages, tagline, and overview from metadata dataset to 
-# create Content based recommendation
-#Create new column desc by concatenating 4 column contents spoken_languages, tagline,
-# and overview from metadata dataset

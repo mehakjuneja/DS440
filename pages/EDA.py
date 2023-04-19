@@ -1,10 +1,6 @@
 import streamlit as st
 
-st.title('🎥 🎯 Welcome to CineMatch 🎥 🎯')
-
-
-st.subheader('We are your free and easy to use application to find movies to your liking without any subscription necessary!')
-st.subheader('Please use the left hand side of the page to either Login or Register if you are not a member!')
+st.title('📈🔍 Exploratory Data Analysis 📈🔍')
 
 import numpy as np
 import pandas as pd
@@ -27,71 +23,14 @@ from ast import literal_eval
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel, cosine_similarity
 
-import streamlit as st
-import sqlite3
-
-# Create SQLite connection and cursor
-conn = sqlite3.connect("user.db")
-c = conn.cursor()
-
-# Create users table if it doesn't exist
-c.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY,
-        username TEXT UNIQUE,
-        password TEXT
-    )
-""")
-conn.commit()
-
-# Create registration form
-def register():
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    confirm_password = st.text_input("Confirm Password", type="password")
-
-    if st.button("Register"):
-        if password != confirm_password:
-            st.error("Passwords do not match")
-        else:
-            try:
-                c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-                conn.commit()
-                st.success("Account created successfully")
-            except sqlite3.IntegrityError:
-                st.error("Username already exists")
-
-# Create login form
-def login():
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        c.execute("SELECT password FROM users WHERE username=?", (username,))
-        result = c.fetchone()
-
-        if result is None:
-            st.error("Invalid username or password")
-        elif result[0] != password:
-            st.error("Invalid username or password")
-        else:
-            st.success("Logged in successfully")
-            st.write(f'Welcome {username} to your CineMatch Account!')
-
-# Main app
-def main():
-    page = st.sidebar.radio("Select a page", ["Login", "Register"])
-
-    if page == "Login":
-        login()
-    elif page == "Register":
-        register()
-
-if __name__ == "__main__":
-    main()
-
-# Close SQLite connection when app is closed
-conn.close()
+def loading_message_movie(func):
+    def wrapper(*args, **kwargs):
+        loading_text = "Hang tight, while we find the movies for you..."
+        with st.spinner(loading_text):
+            result = func(*args, **kwargs)
+        st.success('We hope you enjoy these movies!')
+        return result
+    return wrapper
 
 
 # Data URLS
@@ -174,6 +113,10 @@ def get_first_index(idx):
         idx = idx[0]
     return idx 
 
+# load_data(rating)
+# decade_graph(movies)
+# genre_graph(movies)
+# genre_decade_graph(movies)
 
 md_df=load_data(metadata)
 md_df['year'] = pd.to_datetime(md_df['release_date'], errors='coerce').apply(
@@ -181,8 +124,84 @@ md_df['year'] = pd.to_datetime(md_df['release_date'], errors='coerce').apply(
 
 md_df['id'] = md_df['id'].apply(to_int)
 
+#st.write(md_df)
+#Model Creation
+#Simple Recommendation model using weighted-rating
+#Function to return sorted list of movies by weighted rating
+#Following formula is used to calculated weighted rating Weighted Rating (WR) = (v/(v+m) * R ) + (m/(v+m)*C)
 
-# load_data(rating)
-# decade_graph(movies)
-# genre_graph(movies)
-# genre_decade_graph(movies)
+@st.cache_data
+def get_top_weighted_rating(df, number_of_records=200, percentile=0.85):
+    non_null_vote_counts = df[df['vote_count'].notnull()]['vote_count']
+    non_null_vote_avgs = df[df['vote_average'].notnull()]['vote_average']
+    mean_votes = non_null_vote_avgs.mean()
+    min_votes_req = non_null_vote_counts.quantile(percentile)
+
+    selected = df[(df['vote_count'] >= min_votes_req) & (
+        df['vote_count'].notnull()) & (df['vote_average'].notnull())]
+    selected = selected[['title', 'year',
+                         'vote_count', 'vote_average', 'popularity', 'id']]
+    selected['weighted_rating'] = selected.apply(lambda x: (
+        x.vote_count / (x.vote_count + min_votes_req) * x['vote_average']) + (min_votes_req/(min_votes_req + x.vote_count) * mean_votes), axis=1)
+
+    selected = selected.sort_values(
+        'weighted_rating', ascending=False).head(number_of_records)
+    #st.write(selected)
+    return selected
+
+#Function to create top movie charts for all movies and by genre
+@st.cache_data
+@loading_message_movie
+def build_top_movie_chart(dataframe, genre=None, percentile=0.85, no_of_movies=200):
+    if genre is None:
+        df = dataframe
+        genre=''
+    else:
+        df = stack_df_by_genre(dataframe)
+        df = df[df['genre'] == genre]
+    selected = get_top_weighted_rating(df, no_of_movies, percentile)
+    st.subheader('Top ' + f'{no_of_movies} ' + f'{genre} ' + 'Movies')
+    selected_movies=selected['title']
+    #st.write(selected_movies)
+    return selected_movies
+
+@st.cache_data
+def stack_df_by_genre(dataframe):
+    metadata_temp = dataframe.copy()
+    metadata_temp['genres'] = metadata_temp['genres'].fillna('[]').apply(literal_eval).apply(
+        lambda x: [i['name'] for i in x] if isinstance(x, list) else [])
+    df = metadata_temp.apply(lambda x: pd.Series(
+        x['genres']), axis=1).stack().reset_index(level=1, drop=True)
+    df.name = 'genre'
+    df = metadata_temp.drop('genres', axis=1).join(df)
+    return df
+
+@st.cache_data
+def replace_genre_json_with_list(dataframe, fieldName):
+    metadata_temp = dataframe.copy()
+    metadata_temp[fieldName] = metadata_temp[fieldName].fillna('[]').apply(literal_eval).apply(
+        lambda x: [i['name'] for i in x] if isinstance(x, list) else [])
+    metadata_temp[fieldName] = metadata_temp[fieldName].apply(lambda x: ','.join(map(str, x)))
+    return metadata_temp    
+
+
+load_data(rating)
+decade_graph(movies)
+genre_graph(movies)
+genre_decade_graph(movies)
+
+#Top 10 movies by weighted rating
+
+# top_10=build_top_movie_chart(md_df, percentile=0.95, no_of_movies=10)
+# top_crime_10=build_top_movie_chart(md_df, genre="Crime", percentile=0.90, no_of_movies=10)
+# top_drama_10=build_top_movie_chart(md_df, genre="Drama", percentile=0.90, no_of_movies=10)
+
+# st.write(top_10)
+# st.write(top_crime_10)
+# st.write(top_drama_10)
+
+#Content Based Reccomendation
+#Using genres, spoken_languages, tagline, and overview from metadata dataset to 
+# create Content based recommendation
+#Create new column desc by concatenating 4 column contents spoken_languages, tagline,
+# and overview from metadata dataset

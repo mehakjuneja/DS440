@@ -1,15 +1,8 @@
 import streamlit as st
-from movie_rec_app import build_top_movie_chart
-from movie_rec_app import md_df
+st.title('🎭Movie Genre Recommendations🎭')
 
-#metadata = ("https://github.com/mehakjuneja/DS440/releases/download/metadata.large/movies_metadata.csv")
-
-user_input = st.text_input("Your username", key="user")
-
-if user_input:
-    st.write("Hello " + st.session_state.user + "!")
-else:
-    pass
+from pages.z_backend import build_top_movie_chart
+from pages.z_backend import md_df
 
 
 st.title('Find out the most popular movies in a certain Genre!')

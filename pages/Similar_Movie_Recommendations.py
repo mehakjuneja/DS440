@@ -1,5 +1,5 @@
 import streamlit as st
-st.title('Movie Reccomendation System')
+st.title('🎬Similar Movie Recommendations🎬')
 
 import numpy as np
 import pandas as pd
@@ -31,6 +31,7 @@ tags=("https://github.com/mehakjuneja/DS440/releases/download/tags.large/tags.cs
 genome_scores = ("https://github.com/mehakjuneja/DS440/releases/download/scores.large/genome-scores.csv")
 genome_tags=("https://raw.githubusercontent.com/mehakjuneja/DS440/main/genome-tags.csv")
 metadata = ("https://github.com/mehakjuneja/DS440/releases/download/metadata.large/movies_metadata.csv")
+
 
 @st.cache_data
 def load_data(dt_url, nrows=1000):

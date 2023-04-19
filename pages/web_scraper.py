@@ -1,6 +1,6 @@
 import streamlit as st
 st.title('IMDB Movie Poster Scraper')
-from movie_rec_app import md_df
+from Home import md_df
 import requests
 from bs4 import BeautifulSoup
 import urllib.request
