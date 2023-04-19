@@ -1,0 +1,5 @@
+Steps to run this code:
+1. Download all the files onto your local device (Please do not clone the REPO)
+2. After downloading make sure to install any libraries that you may not have that are in the requirements file
+3. Locate (cd) into the directory of where the files are locatedd
+4. Enter a python environment and run streamlit run Home.py(the main page of our project)
