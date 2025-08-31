@@ -3,7 +3,7 @@
 
 # #**Group 4 Code Implementation**#
 # #Movie Reccomendation System#
-# ###Mehak Juneja, Saketh Gudiseva, Sooraj Narayanan
+# ###Mehak Juneja
 
 # https://github.com/sanjayjaras/sanjayjaras.github.io/blob/master/Projects/movies-recommendation/movie-recommendation-final.ipynb
 
